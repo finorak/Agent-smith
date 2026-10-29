@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fire>=0.7.1",
-    "flake8-docstrings>=1.7.0",
+    "flake8>=7.4.1",
     "mypy>=2.4.0",
     "pydantic>=2.14.1",
 ]

@@ -5,6 +5,10 @@ from sys import stdout
 from typing import Any
 
 
+def show_log(log: str, file: Any = sys.stdout, flush: bool = True, end: str = "\n") -> None:
+    print(log, end=end, file=file, flush=flush)
+
+
 def basic_error_handler(func: Callable) -> Callable:
     """Basic error handler.
 
@@ -18,7 +22,7 @@ def basic_error_handler(func: Callable) -> Callable:
         try:
             res = func(*args, **kwargs)
         except KeyboardInterrupt:
-            print("Thanks for using our solution", file=stdout)
+            print("\n😬Thanks for using our solution", file=stdout, flush=True)
             sys.exit(0)
         return res
 
