@@ -1,6 +1,7 @@
 import ast
 import sys
 
+from node_visitor import NodeVisitor
 from utils import basic_error_handler, show_log
 
 
@@ -49,5 +50,8 @@ class Sandbox:
             code (str): The code we have to extract the imports.
         """
         parse = ast.parse(code)
-        _ = parse
+        extractor = NodeVisitor()
+        extractor.visit(parse)
+        for node in extractor.imports:
+            print(node)
         return []
