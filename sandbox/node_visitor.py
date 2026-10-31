@@ -5,7 +5,7 @@ by using a simple AST check.
 
 import ast
 from ast import Import, ImportFrom
-from typing import Any
+from typing import Any, Self
 
 
 class NodeVisitor(ast.NodeVisitor):
@@ -52,3 +52,12 @@ class NodeVisitor(ast.NodeVisitor):
                 import_form = f"{from_module.name} as {from_module.asname}"
             self.imports.add(f"from {module_name} import {import_form}")
         self.generic_visit(node)
+
+    @staticmethod
+    def is_authorized(module_name: str, authorized_module: set[str]) -> bool:
+        if module_name in authorized_module:
+            return True
+        for module in authorized_module:
+            if module_name.startswith(module_name.rstrip(".")):
+                return True
+        return False

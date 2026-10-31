@@ -1,4 +1,4 @@
-_This project has been part of the 42 curriculum made by mrazakam, finorako, irraheri._
+_This project has been part of the 42 curriculum made by, irraheri, mrazakam, finorako_
 
 # Agent smith
 
@@ -8,5 +8,4 @@ _This project has been part of the 42 curriculum made by mrazakam, finorako, irr
 - [freecodecamp.org](https://www.freecodecamp.org/news/build-an-ai-coding-agent-with-python-and-gemini/)
 - [Provide CPU time and memory to subprocess](https://stackoverflow.com/questions/68424336/provide-cpu-time-and-memory-to-subprocess)
 - [Subprocess Module](https://docs.python.org/3/library/subprocess.html)
-
 - [Return a list of imported Python modules used in a script](https://stackoverflow.com/questions/2572582/return-a-list-of-imported-python-modules-used-in-a-script)
