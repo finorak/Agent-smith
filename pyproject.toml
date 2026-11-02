@@ -1,12 +1,13 @@
 [project]
 name = "agent-smith"
 version = "0.1.0"
-description = "Add your description here"
+description = "A sandbox to execute potontial non trusted code write in python and executed inside a docker"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiohttp>=3.14.5",
     "fire>=0.7.1",
-    "flake8-docstrings>=1.7.0",
+    "flake8>=7.4.1",
     "mypy>=2.4.0",
     "pydantic>=2.14.1",
 ]
