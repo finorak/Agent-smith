@@ -18,4 +18,14 @@ lint:
 lint-strict: lint
 	$(UV) run mypy --strict .
 
-.PHONY := install run-sandbox debug
+
+clean:
+	find . -name "*.pyc" -exec rm -rf {} +
+	find . -type d \( -name "__pycache__" -o -name ".mypy_cache" \) -exec rm -rf {} +
+
+fclean:
+	rm -rf .venv
+
+re: fclean install
+
+.PHONY := install run-sandbox debug clean fclean
