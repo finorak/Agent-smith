@@ -5,7 +5,7 @@ by using a simple AST check.
 
 import ast
 from ast import Import, ImportFrom
-from typing import Any, Self
+from typing import Any
 
 
 class NodeVisitor(ast.NodeVisitor):
@@ -31,9 +31,9 @@ class NodeVisitor(ast.NodeVisitor):
         """
         for import_module in node.names:
             import_form = import_module.name
-            if import_module.asname:
-                import_form = f"{import_module.name} as {import_module.asname}"
-            self.imports.add(f"import {import_form}")
+            # if import_module.asname:
+            #     import_form = f"{import_module.name} as {import_module.asname}"
+            self.imports.add(import_form)
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ImportFrom) -> Any:
@@ -48,16 +48,7 @@ class NodeVisitor(ast.NodeVisitor):
         module_name = node.module
         for from_module in node.names:
             import_form = from_module.name
-            if from_module.asname:
-                import_form = f"{from_module.name} as {from_module.asname}"
-            self.imports.add(f"from {module_name} import {import_form}")
+            # if from_module.asname:
+            #     import_form = f"{from_module.name} as {from_module.asname}"
+            self.imports.add(f"{module_name}.{import_form}")
         self.generic_visit(node)
-
-    @staticmethod
-    def is_authorized(module_name: str, authorized_module: set[str]) -> bool:
-        if module_name in authorized_module:
-            return True
-        for module in authorized_module:
-            if module_name.startswith(module_name.rstrip(".")):
-                return True
-        return False

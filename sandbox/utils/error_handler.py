@@ -5,8 +5,23 @@ from sys import stdout
 from typing import Any
 
 
-def show_log(log: str, file: Any = sys.stdout, flush: bool = True, end: str = "\n") -> None:
-    print(log, end=end, file=file, flush=flush)
+def show_log(
+    *log: Any, file: Any = sys.stdout, flush: bool = True, end: str = "\n", sep=" "
+) -> None:
+    """Print log in the desired stream.
+
+    Given a log, we print it's value in the desired
+    stream so that we can easely see the log.
+
+    Args:
+        log (Any): the data we want to see in the log.
+        file: (stream): where do we want to show our log.
+        flush (bool): wethear or not we want to imediately print that log.
+        end (str): what do we want to print at the end of each log. \
+Default is `\n`.
+        sep (str): what to we want to separete the log. Default is `\n`.
+    """
+    print(*log, sep=sep, end=end, file=file, flush=flush)
 
 
 def basic_error_handler(func: Callable) -> Callable:

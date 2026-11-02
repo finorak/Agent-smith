@@ -9,6 +9,7 @@ class SandboxConfig(BaseModel):
 
     authorized_imports: list[str] = Field(
         default_factory=lambda: [
+            "os",  # for testing
             "math",
             "math.*",
             "collections",
