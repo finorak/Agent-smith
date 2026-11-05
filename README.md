@@ -9,3 +9,4 @@ _This project has been part of the 42 curriculum made by, irraheri, mrazakam, fi
 - [Provide CPU time and memory to subprocess](https://stackoverflow.com/questions/68424336/provide-cpu-time-and-memory-to-subprocess)
 - [Subprocess Module](https://docs.python.org/3/library/subprocess.html)
 - [Return a list of imported Python modules used in a script](https://stackoverflow.com/questions/2572582/return-a-list-of-imported-python-modules-used-in-a-script)
+- [NetworkChuks](https://www.youtube.com/watch?v=GuTcle5edjk)

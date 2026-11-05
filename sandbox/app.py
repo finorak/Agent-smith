@@ -1,18 +1,24 @@
 import ast
+import asyncio
 import subprocess
 import sys
 from ast import Module
+
+# from types import CoroutineType
 from typing import Any
 
-from node_visitor import NodeVisitor
-from sandbox_config import SandboxConfig
-from utils import basic_error_handler, show_log
+from .node_visitor import NodeVisitor
+from .sandbox_model import SandboxModel
+from .utils import basic_error_handler, show_log
 
 
-class Sandbox(SandboxConfig):
-    def __init__(self) -> None:
+class Sandbox(SandboxModel):
+    def __init__(self, routine: Any = None) -> None:
         """Initialize a Sandbox class instance."""
         super().__init__()
+        self.extractor = NodeVisitor()
+        self.curr_code = ""
+        self.routine = routine
 
     # TODO: All the print in this function need to be sent to
     # the appropriate person/server so that the LLM can find
@@ -44,13 +50,13 @@ class Sandbox(SandboxConfig):
                     " Code can't be executed"
                 )
                 continue
-            result = self.run_code(code)
+            result = self._run_code(code)
             show_log(result)
 
     # TODO: make this function return a json
     # containing the stdout, stderr, and exit code
     # Might add something other than that later on.
-    def run_code(self, code: str) -> dict[str, Any]:
+    def _run_code(self, code: str) -> dict[str, Any]:
         """Run untrusted code inside a docker.
 
         Given a code, we don't simply trust it
@@ -61,6 +67,8 @@ class Sandbox(SandboxConfig):
         Args:
             code (str): The code we need to run.
         """
+        asyncio.run(self.routine(code))
+        self.curr_code += f"\n{code}"
         cmd: list[str] = [
             "docker",
             "run",
@@ -72,7 +80,8 @@ class Sandbox(SandboxConfig):
             "--security-opt=no-new-privileges",
             "--pids-limit=64",
             f"--memory={self.max_memory_mb}m",
-            "--cpus=1",
+            # "--cpus=1",  # this should be enabled but since the pc at school doesn't suport
+            # we will live it as is for now.
             "--user=65534:65534",
             "--tmpfs=/tmp:rw,noexec,nosuid,size=32",
             "--ipc=private",
@@ -96,8 +105,8 @@ class Sandbox(SandboxConfig):
             }
         except subprocess.TimeoutExpired as e:
             return {
-                "output": e.stderr or "",
-                "error": e.stderr or "",
+                "output": e.stderr,
+                "error": e.stderr,
                 "exit_code": -1,
             }
 
@@ -144,6 +153,10 @@ imporsts.
         Args:
             module (Module): The code we have to extract the imports.
         """
-        extractor = NodeVisitor()
-        extractor.visit(module)
-        return [module for module in extractor.imports]
+        self.extractor.visit(module)
+        return [module for module in self.extractor.imports]
+
+    def _extract_parmeters(self, module: Module) -> list[str]:
+        """Extract parameters from the gieven code."""
+        params: list[str] = []
+        return params
