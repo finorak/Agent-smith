@@ -4,8 +4,6 @@ import re
 import subprocess
 import sys
 from ast import Module
-
-# from types import CoroutineType
 from typing import Any
 
 from mcp import CallToolRequest
@@ -16,17 +14,19 @@ from .utils import basic_error_handler, show_log
 
 
 class Sandbox(SandboxModel):
-    """A secure execution environment for running tools and routines.
+    """A secure execution environment for running tools and \
+routines.
 
-    This class initializes an isolated sandbox environment designed to interface
-    with external tools by accepting and executing a specified runtime routine.
+    This class initializes an isolated sandbox environment \
+designed to interface with external tools by accepting and \
+executing a specified runtime routine.
 
     Attributes:
-        routine (str): The configuration string, script, or sequence of commands
-            defining the execution steps for the tool.
+        routine (str): The configuration string, script, or \
+sequence of commands defining the execution steps for the tool.
     """
 
-    def __init__(self, routine: Any = None) -> None:
+    def __init__(self, client_routine: Any = None) -> None:
         """Initialize a Sandbox class instance.
 
         Args:
@@ -36,7 +36,7 @@ of commands defining the execution steps for the tool.
         super().__init__()
         self._extractor = NodeVisitor()
         self._curr_code = ""
-        self.routine = routine
+        self.client_routine = client_routine
 
     # TODO: All the print in this function need to be sent to
     # the appropriate person/server so that the LLM can find
@@ -61,10 +61,10 @@ of commands defining the execution steps for the tool.
             except SyntaxError as e:
                 show_log(e, file=sys.stderr)
                 continue
-            import_valid, non_authorized_imports = self._import_is_valid(module)
+            import_valid, non_authorized = self._import_is_valid(module)
             if not import_valid:
                 show_log(
-                    f"Use of non authorized imports: {non_authorized_imports}."
+                    f"Use of non authorized imports: {non_authorized}."
                     " Code can't be executed"
                 )
                 continue
@@ -88,7 +88,7 @@ of commands defining the execution steps for the tool.
         """
         params: list[Any] | None = self._extract_parmeters(code)
         res: CallToolRequest | Any = asyncio.run(
-            self.routine(self._remove_paranthesies(code), params)
+            self.client_routine(self._remove_paranthesies(code), params)
         )
         if res and not res.content[0].text.startswith("Unknown tool"):
             return {
@@ -108,7 +108,8 @@ of commands defining the execution steps for the tool.
             "--security-opt=no-new-privileges",
             "--pids-limit=64",
             f"--memory={self.max_memory_mb}m",
-            # "--cpus=1",  # this should be enabled but since the pc at school doesn't suport
+            # "--cpus=1",  # this should be enabled but
+            # since the pc at school doesn't suport
             # we will live it as is for now.
             "--user=65534:65534",
             "--tmpfs=/tmp:rw,noexec,nosuid,size=32",
@@ -185,7 +186,15 @@ imporsts.
         return [module for module in self._extractor.imports]
 
     def _extract_parmeters(self, code: str) -> list[str] | None:
-        """Extract parameters from the gieven code."""
+        """Extract parameters from the gieven code.
+
+        Args:
+            code (str): the code we want to extract it's \
+parameters.
+
+        Returns:
+            params (list[str] | None): parameters of the tools.
+        """
         raw_args: list[str] | None = None
 
         match = re.search(r"\((.*?)\)", code)
@@ -219,4 +228,4 @@ our server.
         first_index: int = code.find("(")
         if first_index < 0:
             return None
-        return code[0:first_index]
+        return code[0:first_index].strip()

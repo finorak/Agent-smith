@@ -11,7 +11,7 @@ from ..sandbox_model import SandboxModel
 
 def secure_create_config(file_name: str | None = None) -> dict[str, Any]:
     """Secruely open template file.
-    
+
     Before proceding into file usag, we verify if it actually
     conain all the information we need or is a valid file.
 
@@ -32,6 +32,7 @@ def secure_create_config(file_name: str | None = None) -> dict[str, Any]:
         print(e, file=sys.stderr)
         sys.exit(1)
 
+
 def arg_parser() -> Any:
     """Parse argument given at runtime.
 
@@ -41,7 +42,9 @@ def arg_parser() -> Any:
     Returns:
         arguments (Namespace): the arguments we parsed.
     """
-    parser = argparse.ArgumentParser(description="How do you want to run the sandbox.")
+    parser = argparse.ArgumentParser(
+        description="How do you want to run the sandbox.",
+    )
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--mcp-stdio", default=None, type=str)
@@ -66,7 +69,11 @@ the metadata.
 
 
 def show_log(
-    *log: Any, file: Any = sys.stdout, flush: bool = True, end: str = "\n", sep=" "
+    *log: Any,
+    file: Any = sys.stdout,
+    flush: bool = True,
+    end: str = "\n",
+    sep=" ",
 ) -> None:
     """Print log in the desired stream.
 
@@ -97,10 +104,18 @@ def basic_error_handler(func: Callable) -> Callable:
         try:
             res = func(*args, **kwargs)
         except EOFError:
-            show_log("\n😬Thanks for using our solution", file=stdout, flush=True)
+            show_log(
+                "\n😬Thanks for using our solution",
+                file=stdout,
+                flush=True,
+            )
             sys.exit(1)
         except KeyboardInterrupt:
-            show_log("\n😬Thanks for using our solution", file=stdout, flush=True)
+            show_log(
+                "\n😬Thanks for using our solution",
+                file=stdout,
+                flush=True,
+            )
             sys.exit(1)
         return res
 

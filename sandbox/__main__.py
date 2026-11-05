@@ -25,15 +25,19 @@ def main() -> None:
         server_argument = args.mcp_server or args.mcp_stdio
         try:
             process = subprocess.Popen(
-                ["python", "server.py"], start_new_session=True,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                ["python", "server.py"],
+                start_new_session=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
             time.sleep(0.5)
             atexit.register(cleanup, process=process)
             py, server_file = server_argument.strip().split(" ")
             server_process = subprocess.Popen(
-                [py, server_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                start_new_session=True
+                [py, server_file],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                start_new_session=True,
             )
             atexit.register(cleanup, process=server_process)
             time.sleep(0.5)
@@ -43,7 +47,10 @@ def main() -> None:
         except subprocess.SubprocessError as e:
             print(e, file=sys.stderr)
             sys.exit(1)
-    app = Sandbox(**secure_create_config(args.filename), routine=http_server)
+    app = Sandbox(
+        **secure_create_config(args.filename),
+        client_routine=http_server,
+    )
     app.run()
 
 
