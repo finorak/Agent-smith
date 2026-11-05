@@ -4,7 +4,7 @@ by using a simple AST check.
 """
 
 import ast
-from ast import Import, ImportFrom
+from ast import Call, Import, ImportFrom
 from typing import Any
 
 
@@ -31,8 +31,6 @@ class NodeVisitor(ast.NodeVisitor):
         """
         for import_module in node.names:
             import_form = import_module.name
-            # if import_module.asname:
-            #     import_form = f"{import_module.name} as {import_module.asname}"
             self.imports.add(import_form)
         self.generic_visit(node)
 
@@ -48,7 +46,5 @@ class NodeVisitor(ast.NodeVisitor):
         module_name = node.module
         for from_module in node.names:
             import_form = from_module.name
-            # if from_module.asname:
-            #     import_form = f"{from_module.name} as {from_module.asname}"
             self.imports.add(f"{module_name}.{import_form}")
         self.generic_visit(node)

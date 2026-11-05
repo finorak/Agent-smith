@@ -1,18 +1,42 @@
 import ast
+import asyncio
+import re
 import subprocess
 import sys
 from ast import Module
+
+# from types import CoroutineType
 from typing import Any
 
-from node_visitor import NodeVisitor
-from sandbox_config import SandboxConfig
-from utils import basic_error_handler, show_log
+from mcp import CallToolRequest
+
+from .node_visitor import NodeVisitor
+from .sandbox_model import SandboxModel
+from .utils import basic_error_handler, show_log
 
 
-class Sandbox(SandboxConfig):
-    def __init__(self) -> None:
-        """Initialize a Sandbox class instance."""
+class Sandbox(SandboxModel):
+    """A secure execution environment for running tools and routines.
+
+    This class initializes an isolated sandbox environment designed to interface
+    with external tools by accepting and executing a specified runtime routine.
+
+    Attributes:
+        routine (str): The configuration string, script, or sequence of commands
+            defining the execution steps for the tool.
+    """
+
+    def __init__(self, routine: Any = None) -> None:
+        """Initialize a Sandbox class instance.
+
+        Args:
+            routine (str): The configuration string, script, or sequence \
+of commands defining the execution steps for the tool.
+        """
         super().__init__()
+        self._extractor = NodeVisitor()
+        self._curr_code = ""
+        self.routine = routine
 
     # TODO: All the print in this function need to be sent to
     # the appropriate person/server so that the LLM can find
@@ -44,13 +68,14 @@ class Sandbox(SandboxConfig):
                     " Code can't be executed"
                 )
                 continue
-            result = self.run_code(code)
-            show_log(result)
+            result = self.execute(code)
+            if result:
+                show_log(result)
 
     # TODO: make this function return a json
     # containing the stdout, stderr, and exit code
     # Might add something other than that later on.
-    def run_code(self, code: str) -> dict[str, Any]:
+    def execute(self, code: str) -> dict[str, Any] | None:
         """Run untrusted code inside a docker.
 
         Given a code, we don't simply trust it
@@ -61,6 +86,17 @@ class Sandbox(SandboxConfig):
         Args:
             code (str): The code we need to run.
         """
+        params: list[Any] | None = self._extract_parmeters(code)
+        res: CallToolRequest | Any = asyncio.run(
+            self.routine(self._remove_paranthesies(code), params)
+        )
+        if res and not res.content[0].text.startswith("Unknown tool"):
+            return {
+                "output": res.content[0].text if not res.is_error else "",
+                "error": res.content[0].text if res.is_error else "",
+                "exit_code": 1 if res.is_error else 0,
+            }
+        self._curr_code += f"\n{code}"
         cmd: list[str] = [
             "docker",
             "run",
@@ -72,7 +108,8 @@ class Sandbox(SandboxConfig):
             "--security-opt=no-new-privileges",
             "--pids-limit=64",
             f"--memory={self.max_memory_mb}m",
-            "--cpus=1",
+            # "--cpus=1",  # this should be enabled but since the pc at school doesn't suport
+            # we will live it as is for now.
             "--user=65534:65534",
             "--tmpfs=/tmp:rw,noexec,nosuid,size=32",
             "--ipc=private",
@@ -96,8 +133,8 @@ class Sandbox(SandboxConfig):
             }
         except subprocess.TimeoutExpired as e:
             return {
-                "output": e.stderr or "",
-                "error": e.stderr or "",
+                "output": e.stderr,
+                "error": e.stderr,
                 "exit_code": -1,
             }
 
@@ -144,6 +181,42 @@ imporsts.
         Args:
             module (Module): The code we have to extract the imports.
         """
-        extractor = NodeVisitor()
-        extractor.visit(module)
-        return [module for module in extractor.imports]
+        self._extractor.visit(module)
+        return [module for module in self._extractor.imports]
+
+    def _extract_parmeters(self, code: str) -> list[str] | None:
+        """Extract parameters from the gieven code."""
+        raw_args: list[str] | None = None
+
+        match = re.search(r"\((.*?)\)", code)
+
+        if not match:
+            return None
+        raw_args = [arg.strip() for arg in match.group(1).split(",")]
+        typed_args: list[Any] = []
+        for arg in raw_args:
+            try:
+                typed_args.append(ast.literal_eval(arg))
+            except Exception:
+                typed_args.append(arg)
+        return typed_args
+
+    def _remove_paranthesies(self, code: str) -> str | None:
+        """Remove parantezised from the given code.
+
+        As we only send the name of the tool to the
+        server, we don't need to send how we call the
+        tool, so we remove the parenthesis from the given
+        code before sending it to our server.
+
+        Args:
+            code (str): the code we want to send to \
+our server.
+
+        Returns:
+            tool_name (str | None): the name of the tool.
+        """
+        first_index: int = code.find("(")
+        if first_index < 0:
+            return None
+        return code[0:first_index]
