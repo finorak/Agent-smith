@@ -1,5 +1,6 @@
 import ast
 import asyncio
+import re
 import subprocess
 import sys
 from ast import Module
@@ -7,17 +8,34 @@ from ast import Module
 # from types import CoroutineType
 from typing import Any
 
+from mcp import CallToolRequest
+
 from .node_visitor import NodeVisitor
 from .sandbox_model import SandboxModel
 from .utils import basic_error_handler, show_log
 
 
 class Sandbox(SandboxModel):
+    """A secure execution environment for running tools and routines.
+
+    This class initializes an isolated sandbox environment designed to interface
+    with external tools by accepting and executing a specified runtime routine.
+
+    Attributes:
+        routine (str): The configuration string, script, or sequence of commands
+            defining the execution steps for the tool.
+    """
+
     def __init__(self, routine: Any = None) -> None:
-        """Initialize a Sandbox class instance."""
+        """Initialize a Sandbox class instance.
+
+        Args:
+            routine (str): The configuration string, script, or sequence \
+of commands defining the execution steps for the tool.
+        """
         super().__init__()
-        self.extractor = NodeVisitor()
-        self.curr_code = ""
+        self._extractor = NodeVisitor()
+        self._curr_code = ""
         self.routine = routine
 
     # TODO: All the print in this function need to be sent to
@@ -50,13 +68,14 @@ class Sandbox(SandboxModel):
                     " Code can't be executed"
                 )
                 continue
-            result = self._run_code(code)
-            show_log(result)
+            result = self.execute(code)
+            if result:
+                show_log(result)
 
     # TODO: make this function return a json
     # containing the stdout, stderr, and exit code
     # Might add something other than that later on.
-    def _run_code(self, code: str) -> dict[str, Any]:
+    def execute(self, code: str) -> dict[str, Any] | None:
         """Run untrusted code inside a docker.
 
         Given a code, we don't simply trust it
@@ -67,8 +86,17 @@ class Sandbox(SandboxModel):
         Args:
             code (str): The code we need to run.
         """
-        asyncio.run(self.routine(code))
-        self.curr_code += f"\n{code}"
+        params: list[Any] | None = self._extract_parmeters(code)
+        res: CallToolRequest | Any = asyncio.run(
+            self.routine(self._remove_paranthesies(code), params)
+        )
+        if res and not res.content[0].text.startswith("Unknown tool"):
+            return {
+                "output": res.content[0].text if not res.is_error else "",
+                "error": res.content[0].text if res.is_error else "",
+                "exit_code": 1 if res.is_error else 0,
+            }
+        self._curr_code += f"\n{code}"
         cmd: list[str] = [
             "docker",
             "run",
@@ -153,10 +181,42 @@ imporsts.
         Args:
             module (Module): The code we have to extract the imports.
         """
-        self.extractor.visit(module)
-        return [module for module in self.extractor.imports]
+        self._extractor.visit(module)
+        return [module for module in self._extractor.imports]
 
-    def _extract_parmeters(self, module: Module) -> list[str]:
+    def _extract_parmeters(self, code: str) -> list[str] | None:
         """Extract parameters from the gieven code."""
-        params: list[str] = []
-        return params
+        raw_args: list[str] | None = None
+
+        match = re.search(r"\((.*?)\)", code)
+
+        if not match:
+            return None
+        raw_args = [arg.strip() for arg in match.group(1).split(",")]
+        typed_args: list[Any] = []
+        for arg in raw_args:
+            try:
+                typed_args.append(ast.literal_eval(arg))
+            except Exception:
+                typed_args.append(arg)
+        return typed_args
+
+    def _remove_paranthesies(self, code: str) -> str | None:
+        """Remove parantezised from the given code.
+
+        As we only send the name of the tool to the
+        server, we don't need to send how we call the
+        tool, so we remove the parenthesis from the given
+        code before sending it to our server.
+
+        Args:
+            code (str): the code we want to send to \
+our server.
+
+        Returns:
+            tool_name (str | None): the name of the tool.
+        """
+        first_index: int = code.find("(")
+        if first_index < 0:
+            return None
+        return code[0:first_index]

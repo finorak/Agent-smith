@@ -48,10 +48,3 @@ class NodeVisitor(ast.NodeVisitor):
             import_form = from_module.name
             self.imports.add(f"{module_name}.{import_form}")
         self.generic_visit(node)
-
-    def visit_Call(self, node: Call) -> Any:
-        if isinstance(node.func, ast.Name):
-            print(f"Function called: {node.func.id}")
-        elif isinstance(node.func, ast.Attribute):
-            print(f"Method called: {node.func.attr}")
-
