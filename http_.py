@@ -1,8 +1,8 @@
 import asyncio
+import sys
 from typing import Any
 
 from mcp import Client, ListToolsResult, Tool
-
 
 SERVER_URL: str = "http://localhost:8000/mcp"
 
@@ -23,11 +23,13 @@ def get_params(
     return dict(zip(properties, tool_params))
 
 
-async def http_server(tool_name: str | None, args: list[Any] | None = None) -> Any:
+async def http_server(
+    server_url: str, tool_name: str | None, args: list[Any] | None = None
+) -> Any:
     if tool_name is None:
         return None
     # Connexion à l'URL du serveur MCP
-    async with Client(SERVER_URL) as client:
+    async with Client(server_url) as client:
         # 1. Lister les outils disponibles sur le serveur
         tools_result = await client.list_tools()
         tool_args = get_params(tools_result, tool_name, args)
@@ -38,4 +40,5 @@ async def http_server(tool_name: str | None, args: list[Any] | None = None) -> A
 
 
 if __name__ == "__main__":
-    asyncio.run(http_server("ok"))
+    args: list[str] = sys.argv
+    asyncio.run(http_server(args[1], "ok"))

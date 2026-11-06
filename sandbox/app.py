@@ -26,7 +26,7 @@ executing a specified runtime routine.
 sequence of commands defining the execution steps for the tool.
     """
 
-    def __init__(self, client_routine: Any = None) -> None:
+    def __init__(self, client_routine: Any = None, server_url: str = "") -> None:
         """Initialize a Sandbox class instance.
 
         Args:
@@ -37,6 +37,7 @@ of commands defining the execution steps for the tool.
         self._extractor = NodeVisitor()
         self._curr_code = ""
         self.client_routine = client_routine
+        self.server_url = server_url
 
     # TODO: All the print in this function need to be sent to
     # the appropriate person/server so that the LLM can find
@@ -88,7 +89,11 @@ of commands defining the execution steps for the tool.
         """
         params: list[Any] | None = self._extract_parmeters(code)
         res: CallToolRequest | Any = asyncio.run(
-            self.client_routine(self._remove_paranthesies(code), params)
+            self.client_routine(
+                server_url=self.server_url,
+                tool_name=self._remove_paranthesies(code),
+                args=params,
+            )
         )
         if res and not res.content[0].text.startswith("Unknown tool"):
             return {
@@ -183,7 +188,9 @@ imporsts.
             module (Module): The code we have to extract the imports.
         """
         self._extractor.visit(module)
-        return [module for module in self._extractor.imports]
+        imports = self._extractor.imports.copy()
+        self._extractor.imports.clear()
+        return [module for module in imports]
 
     def _extract_parmeters(self, code: str) -> list[str] | None:
         """Extract parameters from the gieven code.
@@ -196,9 +203,7 @@ parameters.
             params (list[str] | None): parameters of the tools.
         """
         raw_args: list[str] | None = None
-
         match = re.search(r"\((.*?)\)", code)
-
         if not match:
             return None
         raw_args = [arg.strip() for arg in match.group(1).split(",")]
