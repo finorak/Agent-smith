@@ -4,7 +4,7 @@ by using a simple AST check.
 """
 
 import ast
-from ast import Call, Import, ImportFrom
+from ast import Import, ImportFrom
 from typing import Any
 
 
