@@ -6,7 +6,7 @@ from mcp.client.stdio import stdio_client
 async def main():
     # Définir les paramètres pour lancer le serveur local
     server_params = StdioServerParameters(
-        command="python", args=["/home/irraheri/test_mcp/server.py"]
+        command="python", args=["./server.py", "stdio"]
     )
     async with stdio_client(server_params) as (read, write):
         # Initialiser la session MCP avec le serveur

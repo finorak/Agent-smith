@@ -5,7 +5,6 @@ import time
 from typing import Any
 
 from http_ import http_server
-import server
 
 from .app import Sandbox
 from .utils.utilities import arg_parser, secure_create_config
@@ -26,15 +25,6 @@ def main() -> None:
     if args.mcp_server or args.mcp_stdio:
         server_argument = args.mcp_server or args.mcp_stdio
         try:
-            process = subprocess.Popen(
-                ["python", "server.py"],
-                start_new_session=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                stdin=subprocess.PIPE,
-            )
-            time.sleep(0.5)
-            atexit.register(cleanup, process=process)
             sandbox_args = server_argument.strip().split(" ")
             if len(sandbox_args) not in (2, 1):
                 raise ValueError("Argument error.")
@@ -42,6 +32,15 @@ def main() -> None:
                 py, server_file = sandbox_args
             else:
                 py, server_file, link = "python", "http_.py", sandbox_args[0]
+            process = subprocess.Popen(
+                ["python", "server.py", "http" if link else "stdio"],
+                start_new_session=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+            )
+            time.sleep(0.5)
+            atexit.register(cleanup, process=process)
             server_process = subprocess.Popen(
                 [py, server_file, link],
                 stdout=subprocess.PIPE,

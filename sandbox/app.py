@@ -71,7 +71,7 @@ of commands defining the execution steps for the tool.
                 continue
             result = self.execute(code)
             if result:
-                show_log(result)
+                show_log(result['output'] if not result["error"] else result["error"])
 
     # TODO: make this function return a json
     # containing the stdout, stderr, and exit code
@@ -96,9 +96,10 @@ of commands defining the execution steps for the tool.
             )
         )
         if res and not res.content[0].text.startswith("Unknown tool"):
+            text = "\n".join(res.content[0].text.split("\\n"))
             return {
-                "output": res.content[0].text if not res.is_error else "",
-                "error": res.content[0].text if res.is_error else "",
+                "output": text if not res.is_error else "",
+                "error": text if res.is_error else "",
                 "exit_code": 1 if res.is_error else 0,
             }
         self._curr_code += f"\n{code}"
@@ -126,7 +127,7 @@ of commands defining the execution steps for the tool.
         try:
             result = subprocess.run(
                 cmd,
-                input=code,
+                input=self._curr_code,
                 capture_output=True,
                 text=True,
                 timeout=self.max_execution_time_seconds,
