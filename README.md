@@ -12,3 +12,4 @@ _This project has been part of the 42 curriculum made by, irraheri, mrazakam, fi
 - [NetworkChuks](https://www.youtube.com/watch?v=GuTcle5edjk)
 - [Building and Exposing MCP Servers with FastMCP](https://medium.com/@anil.goyal0057/building-and-exposing-mcp-servers-with-fastmcp-stdio-http-and-sse-ace0f1d996dd)
 - [GeeksForGeeks](https://www.geeksforgeeks.org/python/exec-in-python/)
+- [Why python sandox isn't enough](https://gist.github.com/mavdol/2c68acb408686f1e038bf89e5705b28c.pibb)

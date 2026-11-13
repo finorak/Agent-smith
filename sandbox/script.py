@@ -87,21 +87,23 @@ def _setup_import_logger():
 
     def _custom_import(name, globals=None, locals=None, fromlist=(), level=0):
         frame = _sys._getframe(1)
-        while frame:
-            filename = frame.f_code.co_filename
-            if not filename.startswith("<frozen importlib"):
-                if filename == "<stdin>":
-                    if name not in seen:
-                        seen.add(name)
-                        print(name, flush=True)
-                break
-            frame = frame.f_back
+
+        if frame.f_code.co_filename == "<user_code>":
+            if name not in seen:
+                seen.add(name)
+                print(f"__SANDBOXIMPORT__:{name}", flush=True)
+
         return orig_import(name, globals, locals, fromlist, level)
 
     _builtins.__import__ = _custom_import
 
 _setup_import_logger()
-del _setup_import_logger
 
+exec(compile(
+    USER_CODE,
+    "<user_code>",
+    "exec"
+))
 """
-    return code_stream + code
+
+    return code_stream.replace("USER_CODE", repr(code))

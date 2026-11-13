@@ -1,5 +1,6 @@
 import ast
 import subprocess
+import traceback
 from ast import Module
 
 from models import SandboxConfig, SandboxError
@@ -25,10 +26,13 @@ class Sandbox(SandboxConfig):
 
     def run(self) -> str | None:
         codes: list[str] = []
+        print("Ctrl+D or exit to execute...")
         while True:
             try:
                 line = input(self._repl(codes))
             except EOFError:
+                break
+            if line.strip() == "exit":
                 break
             codes.append(line)
         return self.execute("\n".join(codes))
@@ -66,7 +70,7 @@ imporsts.
         if import_mod:
             import_modules = import_mod
         else:
-            import_modules: list[str] = self._extract_imports(module)
+            import_modules = self._extract_imports(module)
         for node in import_modules:
             module_valid: bool = False
             for authorized in self.authorized_imports:
@@ -85,7 +89,7 @@ imporsts.
         return non_authorized
 
     def _check_code(self, code: str) -> bool:
-        module: Module = ast.parse(code)
+        module: Module = ast.parse(repr(code))
         non_authorized_imports: list[str] = self._import_is_valid(module)
         self._node_visitor.imports.clear()
         if non_authorized_imports:
@@ -97,16 +101,21 @@ imporsts.
     def execute(self, code: str) -> str:
         if not code:
             raise ValueError("Code is empty.")
+        try:
+            module: Module = ast.parse(code)
+        except SyntaxError:
+            return f"\nstdout: ''\nstderr: {traceback.format_exc()}\nstatus: 1"
         print("\nExecuting...")
         self._check_code(code)
         runtime_imports: list[str] = self._sandbox_tester.get_runtime_imports(code)
         non_authorized_imports: list[str] = self._import_is_valid(
-            ast.parse(code), runtime_imports
+            module, runtime_imports
         )
         if non_authorized_imports:
             raise SandboxError(
                 f"Use of non authorized imports: {non_authorized_imports}"
             )
+        self._node_visitor.imports.clear()
         cmd: list[str] = [
             "docker",
             "run",

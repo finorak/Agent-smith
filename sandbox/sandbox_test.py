@@ -33,9 +33,6 @@ class SandboxTest:
             "python",
             "-",
         ]
-        # mounting allowd directory
-        for allowed_dir in self._parent.allowed_directories:
-            cmd.extend(["-v", f"{allowed_dir}:{allowed_dir}:rw"])
         try:
             task = subprocess.run(
                 cmd,
@@ -45,7 +42,12 @@ class SandboxTest:
                 check=False,
                 timeout=self._parent.max_execution_time_seconds,
             )
-            return [module for module in task.stdout.split("\n") if module]
+            prefix: str = "__SANDBOXIMPORT__:"
+            return [
+                module[len(prefix) :]
+                for module in task.stdout.split("\n")
+                if module.startswith(prefix)
+            ]
         except subprocess.TimeoutExpired:
             raise RuntimeError("Couldn't finish task due to time error")
         except subprocess.SubprocessError:
