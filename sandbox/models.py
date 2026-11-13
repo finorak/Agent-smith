@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class SandboxModel(BaseModel):
+class SandboxConfig(BaseModel):
     """Sandbox configuration for student solutions.
     Uses allowlist approach: only imports in authorized_imports are allowed.
     Everything else is blocked by default.
@@ -11,7 +11,6 @@ class SandboxModel(BaseModel):
 
     authorized_imports: list[str] = Field(
         default_factory=lambda: [
-            "os",
             "math",
             "math.*",
             "collections",
@@ -39,3 +38,8 @@ class SandboxModel(BaseModel):
     )
     max_execution_time_seconds: int = 30
     max_memory_mb: int = 512
+
+
+class SandboxError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)

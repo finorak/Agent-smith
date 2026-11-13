@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from typing import Any
 
 from fastmcp import FastMCP
@@ -37,6 +38,14 @@ def read_file(file_path: str, start_line: int, end_line: int) -> str:
 
 @mcp.tool()
 def ls(directory: str) -> str:
+    """List files inside given directory.
+
+    Args:
+        directory (str): the directory we want to lis files.
+
+    Returns:
+        files (list[str]): the files inside the directory.
+    """
     res: str = ""
     files = os.listdir(directory)
     for file in files:
@@ -52,7 +61,7 @@ def ls(directory: str) -> str:
 def run_command(command: str, workdir: str) -> dict[str, Any]:
     cmd: str = f"cd {workdir} ; {command}"
     try:
-        task = subprocess.run([cmd], check=False, capture_output=True)
+        task = subprocess.run(cmd, check=False, capture_output=True, shell=True)
         return {
             "stdout": task.stdout,
             "stderr": task.stderr,
@@ -65,7 +74,12 @@ def run_command(command: str, workdir: str) -> dict[str, Any]:
 
 if __name__ == "__main__":
     #    HTTP!
-    mcp.run(transport="streamable-http", port=8000)
-
-    #    STDIO!
-    # mcp.run()
+    client_type: list[str] = sys.argv
+    print(client_type)
+    if len(client_type) != 2:
+        print("Client not found", file=sys.stderr)
+    if client_type[1] == "http":
+        print("herer")
+        mcp.run(transport="streamable-http", port=8000)
+    elif client_type[1] == "stdio":
+        mcp.run()
