@@ -10,5 +10,5 @@ _This project has been part of the 42 curriculum made by, irraheri, mrazakam, fi
 - [Subprocess Module](https://docs.python.org/3/library/subprocess.html)
 - [Return a list of imported Python modules used in a script](https://stackoverflow.com/questions/2572582/return-a-list-of-imported-python-modules-used-in-a-script)
 - [NetworkChuks](https://www.youtube.com/watch?v=GuTcle5edjk)
-
 - [Building and Exposing MCP Servers with FastMCP](https://medium.com/@anil.goyal0057/building-and-exposing-mcp-servers-with-fastmcp-stdio-http-and-sse-ace0f1d996dd)
+- [GeeksForGeeks](https://www.geeksforgeeks.org/python/exec-in-python/)

@@ -10,7 +10,7 @@ install: docker-pull
 	$(UV) sync
 
 run-sandbox:
-	$(UV) run python -m $(SANDOX) --mcp-server 'http://localhost:8000/mcp'
+	$(UV) run python $(SANDOX) --mcp-server 'http://localhost:8000/mcp'
 
 debug:
 	$(UV) run pdb -m $(SANDOX).__main__.py
