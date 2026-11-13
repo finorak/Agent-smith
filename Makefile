@@ -1,6 +1,8 @@
 SANDOX := sandbox
 PYTHON_IMAGE := python:3.13-slim
 
+SERVER_TYPE ?= "http"
+
 UV := uv
 
 docker-pull:
@@ -10,7 +12,11 @@ install: docker-pull
 	$(UV) sync
 
 run-sandbox:
-	$(UV) run python $(SANDOX) --mcp-server 'http://localhost:8000/mcp'
+	@if [ "$(SERVER_TYPE)" = "http" ]; then \
+		$(UV) run python $(SANDOX) --mcp-server 'http://localhost:8000/mcp'; \
+	else \
+		$(UV) run python $(SANDOX) --mcp-stdio 'python $(SERVER_TYPE)'; \
+	fi
 
 debug:
 	$(UV) run pdb -m $(SANDOX).__main__.py

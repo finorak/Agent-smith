@@ -11,7 +11,6 @@ class SandboxConfig(BaseModel):
 
     authorized_imports: list[str] = Field(
         default_factory=lambda: [
-            "importlib",
             "math",
             "math.*",
             "collections",
