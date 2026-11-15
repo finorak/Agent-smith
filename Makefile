@@ -12,10 +12,11 @@ install: docker-pull
 	$(UV) sync
 
 run-sandbox:
+	mkdir -p /tmp/ipc_socket
 	@if [ "$(SERVER_TYPE)" = "http" ]; then \
-		$(UV) run python $(SANDOX) --mcp-server 'http://localhost:8000/mcp'; \
+		$(UV) run $(SANDOX) --mcp-server 'http://localhost:8000/mcp'; \
 	else \
-		$(UV) run python $(SANDOX) --mcp-stdio 'python $(SERVER_TYPE)'; \
+		$(UV) run $(SANDOX) --mcp-stdio 'python $(SERVER_TYPE)'; \
 	fi
 
 debug:

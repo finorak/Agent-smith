@@ -72,14 +72,16 @@ def run_command(command: str, workdir: str) -> dict[str, Any]:
     return {"stdout": "", "stderr": "", "exit_code": -1}
 
 
-if __name__ == "__main__":
+def main() -> None:
     #    HTTP!
     client_type: list[str] = sys.argv
-    print(client_type)
     if len(client_type) != 2:
         print("Client not found", file=sys.stderr)
     if client_type[1] == "http":
-        print("herer")
         mcp.run(transport="streamable-http", port=8000)
     elif client_type[1] == "stdio":
         mcp.run()
+
+
+if __name__ == "__main__":
+    main()

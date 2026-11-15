@@ -1,44 +1,35 @@
+import ast
 import asyncio
 import sys
 from typing import Any
 
-from mcp import Client, ListToolsResult, Tool
-
-SERVER_URL: str = "http://localhost:8000/mcp"
-
-
-def get_params(
-    tools_result: ListToolsResult, tool_name: str, tool_params: list[Any] | None
-) -> dict[str, Any] | None:
-    if tool_params is None:
-        return None
-    curr_tool: Tool | None = None
-    for tool in tools_result.tools:
-        if tool.name == tool_name:
-            curr_tool = tool
-            break
-    if curr_tool is None:
-        return None
-    properties = list(curr_tool.input_schema["properties"])
-    return dict(zip(properties, tool_params))
+from mcp import Client
 
 
 async def http_server(
-    server_url: str, tool_name: str | None, args: list[Any] | None = None
+    server_url: str,
+    request: dict[str, Any],
 ) -> Any:
-    if tool_name is None:
-        return None
     # Connexion à l'URL du serveur MCP
     async with Client(server_url) as client:
-        # 1. Lister les outils disponibles sur le serveur
+        result = await client.call_tool(request["name"], arguments=request["args"])
+        tool_result: str = result.content[0].text
+        try:
+            return ast.literal_eval(tool_result)
+        except Exception:
+            return tool_result
+
+
+async def expose_tool(server_url: str) -> Any:
+    async with Client(server_url) as client:
         tools_result = await client.list_tools()
-        tool_args = get_params(tools_result, tool_name, args)
-        # print("Outils disponibles :", [t.name for t in tools_result.tools])
-        # 2. Appeler un outil spécifique (ex: un outil nommé "add")
-        result = await client.call_tool(tool_name, arguments=tool_args)
-        return result
+        return tools_result.tools
 
 
 if __name__ == "__main__":
     args: list[str] = sys.argv
-    asyncio.run(http_server(args[1], "ok"))
+    asyncio.run(
+        http_server(
+            server_url=args[1], request={"name": "add", "args": {"a": 1, "b": 5}}
+        )
+    )
