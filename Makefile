@@ -12,7 +12,7 @@ install: docker-pull
 	$(UV) sync
 
 run-sandbox:
-	mkdir -p /tmp/ipc_socket
+	mkdir -p /home/finorako/goinfre/ipc_socket
 	@if [ "$(SERVER_TYPE)" = "http" ]; then \
 		$(UV) run $(SANDOX) --mcp-server 'http://localhost:8000/mcp'; \
 	else \

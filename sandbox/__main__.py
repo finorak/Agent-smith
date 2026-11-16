@@ -23,20 +23,18 @@ def main() -> None:
             tool_caller=http_server,
         )
         feedback = app.execute("""
-import time
+code: str = \"""def similar_elements(test_tup1, test_tup2):\\n  res = tuple(set(test_tup1) & set(test_tup2))\\n  return (res)\"""
+print(f"\\n{code}")
+#
+tests: list[str] = [
+        "assert set(similar_elements((3, 4, 5, 6),(5, 7, 4, 10))) == set((4, 5))",
+        "assert set(similar_elements((1, 2, 3, 4),(5, 4, 3, 7))) == set((3, 4))",
+        "assert set(similar_elements((11, 12, 14, 13),(17, 15, 14, 13))) == set((13, 14))"
+]
 
-data = []
-chunk_mb = 10
-
-print("Starting memory allocation...")
-while True:
-    # Allocate 50 MB of actual memory (bytearray forces physical RAM usage)
-    chunk = bytearray(b"x" * (chunk_mb * 1024 * 1024))
-    chunk[0] = 1
-    chunk[-1] = 1
-    data.append(chunk)
-    print(f"Allocated ~{len(data) * chunk_mb} MB")
-    time.sleep(5)
+#
+test_res = run_tests(code=code, tests=tests)
+print(test_res)
 """)
         print(feedback)
     except subprocess.SubprocessError as e:

@@ -27,6 +27,8 @@ Description will be here
 - [ICP Docker and host machine](https://medium.com/techanic/docker-containers-ipc-using-sockets-part-1-2ee90885602c)
 - [stackoverflow connection](https://stackoverflow.com/questions/42263167/read-and-write-from-unix-socket-connection-with-python)
 - [Python function redifintion not error](https://stackoverflow.com/questions/23154893/python-why-redefinition-of-a-function-is-not-an-error-is-there-a-hackish-way-t)
+- [Python exec vs eval](https://medium.com/@brusooo27/python-exec-vs-eval-ea949931ee8f)
+- [Docker SDK for PYTHON](https://docker-py.readthedocs.io/en/stable/containers.html)
 
 ## Sandbox
 

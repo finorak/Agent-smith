@@ -139,7 +139,7 @@ def _setup_import_logger():
         if frame.f_code.co_filename == "<user_code>":
             if name not in seen:
                 seen.add(name)
-                print(f"\n__SANDBOXIMPORT__:{name}", file=_sys.stderr, flush=True)
+                print(f"\\n__SANDBOXIMPORT__:{name}\\n", file=_sys.stderr, flush=True)
 
         return orig_import(name, globals, locals, fromlist, level)
 
@@ -147,11 +147,7 @@ def _setup_import_logger():
 
 _setup_import_logger()
 
-exec(compile(
-    USER_CODE,
-    "<user_code>",
-    "exec"
-))
+exec(USER_CODE, "<user_code>", "exec")
 """
 
     return code_stream.replace("USER_CODE", repr(code))
