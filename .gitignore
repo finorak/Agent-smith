@@ -13,3 +13,4 @@ wheels/
 sandbox_bak
 test/
 code.py
+tmp/
