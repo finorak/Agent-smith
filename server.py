@@ -10,11 +10,14 @@ import docker
 from docker.models.containers import Container
 from fastmcp import FastMCP
 
+from sandbox.settings import SANDBOX_CONTAINER
+
 mcp = FastMCP("Calculateur Serveur")
 
-
 def get_container() -> Container:
-    ...
+    client = docker.from_env()
+    container = client.containers.get(SANDBOX_CONTAINER)
+    return container
 
 
 @mcp.tool()
@@ -65,14 +68,23 @@ def ls(directory: str) -> str:
     Returns:
         files (list[str]): the files inside the directory.
     """
-    ...
+    try:
+        container = get_container()
+        task = container.exec_run(workdir=directory, cmd=["ls", "-l"], demux=True)
+        stdout, stderr = task.output
+        if stdout:
+            return stdout.decode("utf-8")  # type: ignore 
+        return stderr.decode("utf-8")  # type: ignore 
+    except Exception as e:
+        return str(e)
 
 @mcp.tool()
 def run_tests(code: str, tests: list[str]) -> dict[str, Any]:
+
     def get_success_count(assertion_response: dict[str, str]) -> int:
         counter: int = 0
         for value in assertion_response.values():
-            if value:
+            if value.lower() == "sucess":
                 counter += 1
         return counter
 
@@ -120,12 +132,6 @@ print(res)
         assertion_response: dict[str, str] | Any = {}
         stdout, stderr = task.output
         try:
-            assertion_response = stdout.decode("utf-8")  # type: ignore
-        except (ValueError, AttributeError):
-            assertion_response = stderr.decode("utf-8")  # type: ignore 
-        except Exception:
-            raise ValueError("Some error occured during tool execution. verify your code")
-        try:
             assertion_response = ast.literal_eval(stdout.decode('utf-8'))  # type: ignore
         except (ValueError, SyntaxError):
             assertion_response = stdout
@@ -168,23 +174,30 @@ def run_command(command: str, workdir: str) -> dict[str, Any]:
             "stderr": error,
             "exit_code": task.exit_code
         }
+        stdout, stderr = task.output
+        return {
+            "stdout": stdout.decode("utf-8") if stdout else "",  # type: ignore 
+            "stderr": stderr.decode("utf-8") if stderr else "",  # type: ignore 
+            "exit_code": task.exit_code
+        }
     except Exception as e:
         return {
             "stdout": "",
             "stderr": str(e),
             "exit_code": -1
         }
-    return {"stdout": "", "stderr": "", "exit_code": -1}
 
 
-if __name__ == "__main__":
+def main() -> None:
     #    HTTP!
     client_type: list[str] = sys.argv
-    print(client_type)
     if len(client_type) != 2:
         print("Client not found", file=sys.stderr)
     if client_type[1] == "http":
-        print("herer")
         mcp.run(transport="streamable-http", port=8000)
     elif client_type[1] == "stdio":
         mcp.run()
+
+
+if __name__ == "__main__":
+    main()

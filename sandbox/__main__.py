@@ -1,12 +1,12 @@
+import asyncio
 import subprocess
 import sys
 from argparse import Namespace
 
-from app import Sandbox
+from http_ import expose_tool, http_server
 
-from http_ import http_server
-
-from .utils import get_template_from_input, parse_argument
+from .app import Sandbox
+from .utils import build_tool_wrapper, get_template_from_input, parse_argument
 
 
 def main() -> None:
@@ -14,13 +14,15 @@ def main() -> None:
     args: Namespace = parse_argument()
     try:
         tool_wrappers: dict[str, str] = {}
+        if args.mcp_server:
+            tools = asyncio.run(expose_tool(args.mcp_server))
+            tool_wrappers = build_tool_wrapper(tools)
         app = Sandbox(
             **get_template_from_input(args.template),
             wrappers=tool_wrappers,
             mcp_url=args.mcp_server,
             tool_caller=http_server,
         )
-        # feedback = app.run()
         feedback = app.execute("""
 code: str = \"""def similar_elements(test_tup1, test_tup2):\\n  res = tuple(set(test_tup1) & set(test_tup2))\\n  return (res)\"""
 print(f"\\n{code}")
