@@ -12,3 +12,4 @@ wheels/
 .env
 sandbox_bak
 test/
+code.py
