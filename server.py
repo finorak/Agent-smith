@@ -84,7 +84,7 @@ def run_tests(code: str, tests: list[str]) -> dict[str, Any]:
     def get_success_count(assertion_response: dict[str, str]) -> int:
         counter: int = 0
         for value in assertion_response.values():
-            if value.lower() == "sucess":
+            if value == True:
                 counter += 1
         return counter
 
